@@ -1,0 +1,58 @@
+{
+  "title": "Checkmk Sensor",
+  "config": {
+    "step": {
+      "user": {
+        "description": "Configure your Checkmk instance.",
+        "data": {
+          "host": "Checkmk server",
+          "site": "Site name",
+          "username": "API user",
+          "password": "API secret",
+          "protocol": "Protocol",
+          "port": "Port",
+          "verify_ssl": "Verify SSL certificate",
+          "host_include": "Host include patterns",
+          "host_exclude": "Host exclude patterns",
+          "service_include": "Service include patterns",
+          "service_exclude": "Service exclude patterns",
+          "service_filter": "Legacy service filter (optional)"
+        },
+        "data_description": {
+          "host_include": "One pattern per line or separated by spaces. Example: srv-* db-*",
+          "host_exclude": "Exclude matching hosts.",
+          "service_include": "Only include services matching these patterns. Example: *cpu* *ram*",
+          "service_exclude": "Exclude services matching these patterns.",
+          "service_filter": "Legacy include filter; keep empty if you use include/exclude."
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "options": {
+        "data": {
+          "host": "Checkmk server",
+          "site": "Site name",
+          "username": "API user",
+          "password": "API secret",
+          "protocol": "Protocol",
+          "port": "Port",
+          "verify_ssl": "Verify SSL certificate",
+          "host_include": "Host include patterns",
+          "host_exclude": "Host exclude patterns",
+          "service_include": "Service include patterns",
+          "service_exclude": "Service exclude patterns",
+          "service_filter": "Legacy service filter (optional)"
+        },
+        "data_description": {
+          "host_include": "One pattern per line or separated by spaces. Example: srv-* db-*",
+          "host_exclude": "Exclude matching hosts.",
+          "service_include": "Only include services matching these patterns. Example: *cpu* *ram*",
+          "service_exclude": "Exclude services matching these patterns.",
+          "service_filter": "Legacy include filter; keep empty if you use include/exclude."
+        }
+      }
+    }
+  }
+}

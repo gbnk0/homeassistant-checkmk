@@ -1,0 +1,8 @@
+CONF_VERIFY_SSL = "verify_ssl"
+CONF_SERVICE_FILTER = "service_filter"
+CONF_SERVICE_INCLUDE = "service_include"
+CONF_SERVICE_EXCLUDE = "service_exclude"
+CONF_HOST_INCLUDE = "host_include"
+CONF_HOST_EXCLUDE = "host_exclude"
+"""Constantes pour l'intégration Checkmk"""
+DOMAIN = "homeassistant_checkmk"

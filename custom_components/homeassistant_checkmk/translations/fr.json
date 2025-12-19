@@ -1,0 +1,58 @@
+{
+  "title": "Capteur Checkmk",
+  "config": {
+    "step": {
+      "user": {
+        "description": "Configurez votre instance Checkmk.",
+        "data": {
+          "host": "Serveur Checkmk",
+          "site": "Nom du site",
+          "username": "Utilisateur API",
+          "password": "Secret API",
+          "protocol": "Protocole",
+          "port": "Port",
+          "verify_ssl": "Verifier le certificat SSL",
+          "host_include": "Hosts a inclure",
+          "host_exclude": "Hosts a exclure",
+          "service_include": "Services a inclure",
+          "service_exclude": "Services a exclure",
+          "service_filter": "Filtre services legacy (optionnel)"
+        },
+        "data_description": {
+          "host_include": "Un motif par ligne ou separe par espaces. Exemple: srv-* db-*",
+          "host_exclude": "Exclure les hosts correspondants.",
+          "service_include": "Inclure uniquement les services correspondants. Exemple: *cpu* *ram*",
+          "service_exclude": "Exclure les services correspondants.",
+          "service_filter": "Filtre d'inclusion legacy; laisser vide si vous utilisez include/exclude."
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "options": {
+        "data": {
+          "host": "Serveur Checkmk",
+          "site": "Nom du site",
+          "username": "Utilisateur API",
+          "password": "Secret API",
+          "protocol": "Protocole",
+          "port": "Port",
+          "verify_ssl": "Verifier le certificat SSL",
+          "host_include": "Hosts a inclure",
+          "host_exclude": "Hosts a exclure",
+          "service_include": "Services a inclure",
+          "service_exclude": "Services a exclure",
+          "service_filter": "Filtre services legacy (optionnel)"
+        },
+        "data_description": {
+          "host_include": "Un motif par ligne ou separe par espaces. Exemple: srv-* db-*",
+          "host_exclude": "Exclure les hosts correspondants.",
+          "service_include": "Inclure uniquement les services correspondants. Exemple: *cpu* *ram*",
+          "service_exclude": "Exclure les services correspondants.",
+          "service_filter": "Filtre d'inclusion legacy; laisser vide si vous utilisez include/exclude."
+        }
+      }
+    }
+  }
+}

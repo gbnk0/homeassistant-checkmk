@@ -1,0 +1,10 @@
+{
+  "domain": "homeassistant_checkmk",
+  "name": "Home Assistant Checkmk Integration",
+  "version": "0.1.0",
+  "documentation": "https://github.com/gbnk0/homeassistant-checkmk",
+  "requirements": ["aiohttp"],
+  "dependencies": [],
+  "codeowners": ["@gbnk0"],
+  "config_flow": true
+}
