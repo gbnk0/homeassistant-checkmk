@@ -1,0 +1,6 @@
+{
+  "name": "Home Assistant Checkmk Integration",
+  "content_in_root": false,
+  "render_readme": true,
+  "domains": ["homeassistant_checkmk"]
+}
