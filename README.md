@@ -13,6 +13,10 @@ A Home Assistant custom integration for monitoring Checkmk hosts and services.
 
 ### HACS (custom repository)
 
+Click the button below to add this repository in HACS:
+
+[![Open your Home Assistant instance and add this integration repository to HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?category=integration&owner=gbnk0&repository=homeassistant-checkmk)
+
 1. HACS → Integrations → three dots → Custom repositories.
 2. Add this repository URL, category: Integration.
 3. Install, then restart Home Assistant.
