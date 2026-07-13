@@ -1,13 +1,13 @@
 {
   "domain": "homeassistant_checkmk",
   "name": "Home Assistant Checkmk Integration",
-  "version": "0.2.0",
+  "codeowners": ["@gbnk0"],
+  "config_flow": true,
+  "dependencies": [],
   "documentation": "https://github.com/gbnk0/homeassistant-checkmk",
-  "issue_tracker": "https://github.com/gbnk0/homeassistant-checkmk/issues",
   "integration_type": "service",
   "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/gbnk0/homeassistant-checkmk/issues",
   "requirements": ["aiohttp"],
-  "dependencies": [],
-  "codeowners": ["@gbnk0"],
-  "config_flow": true
+  "version": "0.2.0"
 }
