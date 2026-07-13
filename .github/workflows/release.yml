@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Verify tag and manifest versions match
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          manifest = json.loads(
+              Path("custom_components/homeassistant_checkmk/manifest.json").read_text()
+          )
+          tag_version = os.environ["TAG"].removeprefix("v")
+          if manifest["version"] != tag_version:
+              raise SystemExit(
+                  f"Tag {tag_version} does not match manifest {manifest['version']}"
+              )
+          PY
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" --verify-tag --generate-notes

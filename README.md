@@ -5,6 +5,8 @@ A Home Assistant custom integration for monitoring Checkmk hosts and services.
 ## Features
 
 - Host and service status sensors (OK/WARN/CRIT/UNKNOWN, UP/DOWN/UNREACH).
+- Numeric metric sensors for graphing CPU, RAM, disks, temperatures, network
+  traffic and any other performance data exposed by Checkmk.
 - Include/exclude filters for hosts and services with wildcard patterns.
 - HTTPS or HTTP, custom port, optional SSL verification.
 - Config flow UI with editable options.
@@ -50,9 +52,14 @@ Pattern format: space or comma separated, supports wildcards. Example: `*temp* *
 
 The integration creates:
 - One sensor per host
-- One sensor per service
+- One status sensor per service
+- One numeric sensor per Checkmk performance metric
 
-States are text (status), not numeric values.
+Numeric metric sensors use Home Assistant's `measurement` state class so they
+are recorded and graphable. Units such as `%`, bytes, seconds, watts and °C are
+mapped to the corresponding Home Assistant device class. Checkmk warning,
+critical, minimum and maximum values are exposed as entity attributes when
+available.
 
 ## Troubleshooting
 
@@ -71,3 +78,10 @@ logger:
 ## HACS
 
 This repository is HACS-compatible as a custom integration.
+
+## Releases and versions
+
+Stable versions are published as GitHub Releases from semantic Git tags named
+`vMAJOR.MINOR.PATCH` (for example, `v0.2.0`). The integration manifest uses the
+same version without the leading `v`. HACS installs and upgrades from the latest
+GitHub Release rather than directly from the default branch.

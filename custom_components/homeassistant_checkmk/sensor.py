@@ -1,7 +1,9 @@
 """Sensor entity for Checkmk with config entry support"""
 import logging
+from datetime import timedelta
 import aiohttp
 from homeassistant.const import CONF_HOST, CONF_USERNAME, CONF_PASSWORD
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from .const import (
     DOMAIN,
     CONF_VERIFY_SSL,
@@ -11,10 +13,75 @@ from .const import (
     CONF_HOST_INCLUDE,
     CONF_HOST_EXCLUDE,
 )
-from .entities import CheckmkHostSensor, CheckmkServiceSensor
-from .utils import match_any, split_terms
+from .entities import CheckmkHostSensor, CheckmkMetricSensor, CheckmkServiceSensor
+from .utils import match_any, parse_perf_data, split_terms
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _service_value(service, key):
+    if not isinstance(service, dict):
+        return None
+    value = service.get(key)
+    extensions = service.get("extensions")
+    if value is None and isinstance(extensions, dict):
+        value = extensions.get(key)
+    return value
+
+
+class CheckmkServiceCoordinator(DataUpdateCoordinator):
+    """Fetch all Checkmk service states and metrics in one API request."""
+
+    def __init__(self, hass, config_entry, url, headers, site, ssl_context):
+        super().__init__(
+            hass,
+            _LOGGER,
+            name="Checkmk services",
+            config_entry=config_entry,
+            update_interval=timedelta(seconds=60),
+            always_update=False,
+        )
+        self._url = url
+        self._headers = headers
+        self._site = site
+        self._ssl_context = ssl_context
+
+    async def _async_update_data(self):
+        body = {
+            "sites": [self._site],
+            "columns": ["host_name", "description", "state", "perf_data"],
+        }
+        try:
+            connector = aiohttp.TCPConnector(ssl=self._ssl_context)
+            async with aiohttp.ClientSession(connector=connector) as session:
+                async with session.post(
+                    self._url,
+                    headers={**self._headers, "Content-Type": "application/json"},
+                    json=body,
+                    timeout=15,
+                ) as response:
+                    if response.status != 200:
+                        raise UpdateFailed(
+                            f"Checkmk services API returned {response.status}: "
+                            f"{await response.text()}"
+                        )
+                    payload = await response.json()
+        except (aiohttp.ClientError, TimeoutError) as err:
+            raise UpdateFailed(f"Unable to update Checkmk services: {err}") from err
+
+        result = {}
+        for service in payload.get("value", []):
+            host_name = _service_value(service, "host_name")
+            description = _service_value(service, "description")
+            if host_name and description:
+                metrics = parse_perf_data(
+                    _service_value(service, "perf_data") or "", description
+                )
+                result[(host_name, description)] = {
+                    "state": _service_value(service, "state"),
+                    "metrics": {metric["name"]: metric for metric in metrics},
+                }
+        return result
 
 async def async_setup_entry(hass, entry, async_add_entities):
     config = entry.options if entry.options else entry.data
@@ -91,7 +158,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 _LOGGER.error(f"Device registry error for host {host_name}: {dr_err}")
         entities.append(CheckmkHostSensor(host, site, user, secret, host_name, verify_ssl, protocol, port))
     try:
-        _LOGGER.debug(f"Connecting to Checkmk API: {url} with headers {headers} and SSL {ssl_context}")
+        _LOGGER.debug(f"Connecting to Checkmk API: {url} with SSL {ssl_context}")
         connector = aiohttp.TCPConnector(ssl=ssl_context)
         async with aiohttp.ClientSession(connector=connector) as session:
             async with session.get(url, headers=headers, timeout=15) as resp:
@@ -109,44 +176,27 @@ async def async_setup_entry(hass, entry, async_add_entities):
                             _add_host_entity(host_name)
                 else:
                     _LOGGER.error(f"Checkmk hosts API error: {resp.status}")
-            service_url = f"{protocol}://{host}:{port}/{site}/check_mk/api/1.0/domain-types/service/collections/all"
-            service_body = {
-                "sites": [site],
-                "columns": ["host_name", "description", "state"]
-            }
-            try:
-                _LOGGER.debug(f"POST {service_url} body: {service_body}")
-                async with session.post(service_url, headers={**headers, "Content-Type": "application/json"}, json=service_body, timeout=15) as service_resp:
-                    if service_resp.status == 200:
-                        service_data = await service_resp.json()
-                        _LOGGER.debug(f"Checkmk services API response: {service_data}")
-                        services = service_data.get("value", [])
-                        for service in services:
-                            extensions = service.get("extensions") if isinstance(service, dict) else None
-                            service_host = service.get("host_name") if isinstance(service, dict) else None
-                            service_name = service.get("description") if isinstance(service, dict) else None
-                            if isinstance(extensions, dict):
-                                service_host = service_host or extensions.get("host_name")
-                                service_name = service_name or extensions.get("description")
-                            if not service_host or not service_name:
-                                _LOGGER.error(f"Service entry missing host_name/description: {service}")
-                                continue
-                            if not _service_allowed(service_name):
-                                continue
-                            if not _host_allowed(service_host):
-                                continue
-                            _add_host_entity(service_host)
-                            entities.append(CheckmkServiceSensor(host, site, user, secret, service_host, service_name, verify_ssl, protocol, port))
-                    else:
-                        try:
-                            error_text = await service_resp.text()
-                        except Exception:
-                            error_text = "(no body)"
-                        _LOGGER.error(f"Checkmk services API error: {service_resp.status} body={error_text}")
-            except Exception as se:
-                _LOGGER.error(f"Checkmk services connection error: {se}")
     except Exception as e:
         _LOGGER.error(f"Checkmk hosts connection error: {e}")
+
+    service_url = f"{protocol}://{host}:{port}/{site}/check_mk/api/1.0/domain-types/service/collections/all"
+    coordinator = CheckmkServiceCoordinator(
+        hass, entry, service_url, headers, site, ssl_context
+    )
+    await coordinator.async_config_entry_first_refresh()
+    for (service_host, service_name), service in coordinator.data.items():
+        if not _service_allowed(service_name) or not _host_allowed(service_host):
+            continue
+        _add_host_entity(service_host)
+        entities.append(
+            CheckmkServiceSensor(coordinator, service_host, service_name)
+        )
+        entities.extend(
+            CheckmkMetricSensor(
+                coordinator, service_host, service_name, metric
+            )
+            for metric in service["metrics"].values()
+        )
     if entities:
         async_add_entities(entities)
     else:
