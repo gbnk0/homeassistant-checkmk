@@ -18,6 +18,8 @@ parse_perf_data = _UTILS.parse_perf_data
 invalid_regex_patterns = _UTILS.invalid_regex_patterns
 match_any = _UTILS.match_any
 selection_allows = _UTILS.selection_allows
+metric_key = _UTILS.metric_key
+metric_selection_allows = _UTILS.metric_selection_allows
 
 
 class ParsePerfDataTest(unittest.TestCase):
@@ -89,6 +91,24 @@ class ParsePerfDataTest(unittest.TestCase):
         self.assertTrue(selection_allows("host-b", {"host-a"}, ["host-*"], []))
         self.assertFalse(selection_allows("db-a", {"host-a"}, ["host-*"], []))
         self.assertFalse(selection_allows("host-a", {"host-a"}, [], ["re:^host-a$"]))
+
+    def test_metric_selection_uses_service_and_metric_name(self):
+        key = metric_key("Memory", "mem_used_percent")
+        self.assertEqual(key, "Memory::mem_used_percent")
+        self.assertTrue(
+            metric_selection_allows("Memory", "mem_used_percent", {key}, [], [])
+        )
+        self.assertFalse(metric_selection_allows("Memory", "mem_free", {key}, [], []))
+        self.assertTrue(
+            metric_selection_allows(
+                "Disk IO SUMMARY", "disk_latency", set(), ["*latency"], []
+            )
+        )
+        self.assertFalse(
+            metric_selection_allows(
+                "Memory", "mem_used", set(), ["Memory::*"], ["*mem_used"]
+            )
+        )
 
 
 if __name__ == "__main__":

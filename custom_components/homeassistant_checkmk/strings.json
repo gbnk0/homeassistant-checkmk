@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Connect to Checkmk",
-        "description": "Enter the API credentials, then continue to refresh the available hosts and services.",
+        "description": "Enter the API credentials, then continue to refresh the available hosts, services, and metrics.",
         "data": {
           "host": "Checkmk server",
           "site": "Site name",
@@ -41,6 +41,20 @@
           "selected_services": "Service names loaded from the selected hosts.",
           "service_include": "Case-insensitive wildcards or re: expressions. Example: CPU* or re:^(CPU|Memory)$",
           "service_exclude": "Exclusions take priority over selections and includes."
+        }
+      },
+      "metrics": {
+        "title": "Select metrics",
+        "description": "Select the numeric metrics to create in Home Assistant. Leave the selection and patterns empty to include every discovered metric.",
+        "data": {
+          "selected_metrics": "Discovered metrics",
+          "metric_include": "Additional metric patterns",
+          "metric_exclude": "Excluded metric patterns"
+        },
+        "data_description": {
+          "selected_metrics": "Metrics are grouped as Service — metric.",
+          "metric_include": "Match the metric name or Service::metric key. Example: *percent or Memory::mem_*",
+          "metric_exclude": "Exclusions take priority. Wildcards and re: expressions are supported."
         }
       }
     },
@@ -56,7 +70,7 @@
     "step": {
       "init": {
         "title": "Refresh Checkmk discovery",
-        "description": "Check the connection settings, then continue to reload hosts and services from Checkmk.",
+        "description": "Check the connection settings, then continue to reload hosts, services, and metrics from Checkmk.",
         "data": {
           "host": "Checkmk server",
           "site": "Site name",
@@ -93,6 +107,20 @@
           "selected_services": "Service names loaded from the selected hosts.",
           "service_include": "Case-insensitive wildcards or re: expressions. Example: CPU* or re:^(CPU|Memory)$",
           "service_exclude": "Exclusions take priority over selections and includes."
+        }
+      },
+      "metrics": {
+        "title": "Select metrics",
+        "description": "Select the numeric metrics to create in Home Assistant. Leave the selection and patterns empty to include every discovered metric.",
+        "data": {
+          "selected_metrics": "Discovered metrics",
+          "metric_include": "Additional metric patterns",
+          "metric_exclude": "Excluded metric patterns"
+        },
+        "data_description": {
+          "selected_metrics": "Metrics are grouped as Service — metric.",
+          "metric_include": "Match the metric name or Service::metric key. Example: *percent or Memory::mem_*",
+          "metric_exclude": "Exclusions take priority. Wildcards and re: expressions are supported."
         }
       }
     },

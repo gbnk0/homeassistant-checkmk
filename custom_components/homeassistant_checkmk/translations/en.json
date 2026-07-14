@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "Connect to Checkmk",
-        "description": "Enter the API credentials, then continue to refresh the available hosts and services.",
+        "description": "Enter the API credentials, then continue to refresh the available hosts, services, and metrics.",
         "data": {"host": "Checkmk server", "site": "Site name", "username": "API user", "password": "API secret", "protocol": "Protocol", "port": "Port", "verify_ssl": "Verify SSL certificate"}
       },
       "hosts": {
@@ -18,6 +18,12 @@
         "description": "Services are limited to the selected or matching hosts.",
         "data": {"selected_services": "Discovered services", "service_include": "Additional service patterns", "service_exclude": "Excluded service patterns"},
         "data_description": {"selected_services": "Service names loaded from the selected hosts.", "service_include": "Case-insensitive wildcards or re: expressions. Example: CPU* or re:^(CPU|Memory)$", "service_exclude": "Exclusions take priority over selections and includes."}
+      },
+      "metrics": {
+        "title": "Select metrics",
+        "description": "Select the numeric metrics to create in Home Assistant. Leave the selection and patterns empty to include every discovered metric.",
+        "data": {"selected_metrics": "Discovered metrics", "metric_include": "Additional metric patterns", "metric_exclude": "Excluded metric patterns"},
+        "data_description": {"selected_metrics": "Metrics are grouped as Service — metric.", "metric_include": "Match the metric name or Service::metric key. Example: *percent or Memory::mem_*", "metric_exclude": "Exclusions take priority. Wildcards and re: expressions are supported."}
       }
     },
     "error": {"cannot_connect": "Unable to connect to Checkmk.", "invalid_auth": "Invalid Checkmk API credentials.", "invalid_regex": "At least one re: expression is invalid.", "invalid_response": "Checkmk returned an invalid or empty response.", "unknown": "Unexpected error while loading Checkmk data."}
@@ -26,7 +32,7 @@
     "step": {
       "init": {
         "title": "Refresh Checkmk discovery",
-        "description": "Check the connection settings, then continue to reload hosts and services from Checkmk.",
+        "description": "Check the connection settings, then continue to reload hosts, services, and metrics from Checkmk.",
         "data": {"host": "Checkmk server", "site": "Site name", "username": "API user", "password": "API secret", "protocol": "Protocol", "port": "Port", "verify_ssl": "Verify SSL certificate"}
       },
       "hosts": {
@@ -40,6 +46,12 @@
         "description": "Services are limited to the selected or matching hosts.",
         "data": {"selected_services": "Discovered services", "service_include": "Additional service patterns", "service_exclude": "Excluded service patterns"},
         "data_description": {"selected_services": "Service names loaded from the selected hosts.", "service_include": "Case-insensitive wildcards or re: expressions. Example: CPU* or re:^(CPU|Memory)$", "service_exclude": "Exclusions take priority over selections and includes."}
+      },
+      "metrics": {
+        "title": "Select metrics",
+        "description": "Select the numeric metrics to create in Home Assistant. Leave the selection and patterns empty to include every discovered metric.",
+        "data": {"selected_metrics": "Discovered metrics", "metric_include": "Additional metric patterns", "metric_exclude": "Excluded metric patterns"},
+        "data_description": {"selected_metrics": "Metrics are grouped as Service — metric.", "metric_include": "Match the metric name or Service::metric key. Example: *percent or Memory::mem_*", "metric_exclude": "Exclusions take priority. Wildcards and re: expressions are supported."}
       }
     },
     "error": {"cannot_connect": "Unable to connect to Checkmk.", "invalid_auth": "Invalid Checkmk API credentials.", "invalid_regex": "At least one re: expression is invalid.", "invalid_response": "Checkmk returned an invalid or empty response.", "unknown": "Unexpected error while loading Checkmk data."}

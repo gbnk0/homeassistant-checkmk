@@ -15,9 +15,18 @@ from .const import (
     CONF_HOST_EXCLUDE,
     CONF_SELECTED_HOSTS,
     CONF_SELECTED_SERVICES,
+    CONF_SELECTED_METRICS,
+    CONF_METRIC_INCLUDE,
+    CONF_METRIC_EXCLUDE,
 )
 from .entities import CheckmkHostSensor, CheckmkMetricSensor, CheckmkServiceSensor
-from .utils import match_any, parse_perf_data, selection_allows, split_terms
+from .utils import (
+    match_any,
+    metric_selection_allows,
+    parse_perf_data,
+    selection_allows,
+    split_terms,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -103,10 +112,13 @@ async def async_setup_entry(hass, entry, async_add_entities):
     host_exclude = config.get(CONF_HOST_EXCLUDE, "")
     selected_hosts = set(config.get(CONF_SELECTED_HOSTS, []))
     selected_services = set(config.get(CONF_SELECTED_SERVICES, []))
+    selected_metrics = set(config.get(CONF_SELECTED_METRICS, []))
     service_include_terms = split_terms(service_include)
     service_exclude_terms = split_terms(service_exclude)
     host_include_terms = split_terms(host_include)
     host_exclude_terms = split_terms(host_exclude)
+    metric_include_terms = split_terms(config.get(CONF_METRIC_INCLUDE, ""))
+    metric_exclude_terms = split_terms(config.get(CONF_METRIC_EXCLUDE, ""))
     url = f"{protocol}://{host}:{port}/{site}/check_mk/api/1.0/domain-types/host_config/collections/all"
     headers = {"Authorization": f"Bearer {user} {secret}", "Accept": "application/json"}
     # Option pour ignorer le certificat SSL (doit aussi prendre en compte entry.options)
@@ -139,6 +151,15 @@ async def async_setup_entry(hass, entry, async_add_entities):
             selected_services,
             service_include_terms,
             service_exclude_terms,
+        )
+
+    def _metric_allowed(service_name, metric_name):
+        return metric_selection_allows(
+            service_name,
+            metric_name,
+            selected_metrics,
+            metric_include_terms,
+            metric_exclude_terms,
         )
 
     def _add_host_entity(host_name):
@@ -208,6 +229,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         entities.extend(
             CheckmkMetricSensor(coordinator, service_host, service_name, metric)
             for metric in service["metrics"].values()
+            if _metric_allowed(service_name, metric["name"])
         )
     if entities:
         async_add_entities(entities)

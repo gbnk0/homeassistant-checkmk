@@ -71,6 +71,26 @@ def selection_allows(value, selected, include_patterns, exclude_patterns):
     return not match_any(value, exclude_patterns)
 
 
+def metric_key(service_name, metric_name):
+    """Return the stable value used by the metric multi-select."""
+    return f"{service_name}::{metric_name}"
+
+
+def metric_selection_allows(
+    service_name, metric_name, selected, include_patterns, exclude_patterns
+):
+    """Filter a metric by exact service/metric key, metric name, or patterns."""
+    key = metric_key(service_name, metric_name)
+    candidates = (key, metric_name)
+    if (selected or include_patterns) and not (
+        key in selected
+        or metric_name in selected
+        or any(match_any(candidate, include_patterns) for candidate in candidates)
+    ):
+        return False
+    return not any(match_any(candidate, exclude_patterns) for candidate in candidates)
+
+
 def parse_perf_data(raw, service_name=None):
     """Parse Nagios/Checkmk performance data into numeric metrics.
 

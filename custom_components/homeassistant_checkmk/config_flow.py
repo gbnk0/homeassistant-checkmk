@@ -14,7 +14,10 @@ from homeassistant.helpers.selector import selector
 from .const import (
     CONF_HOST_EXCLUDE,
     CONF_HOST_INCLUDE,
+    CONF_METRIC_EXCLUDE,
+    CONF_METRIC_INCLUDE,
     CONF_SELECTED_HOSTS,
+    CONF_SELECTED_METRICS,
     CONF_SELECTED_SERVICES,
     CONF_SERVICE_EXCLUDE,
     CONF_SERVICE_FILTER,
@@ -25,6 +28,8 @@ from .const import (
 from .utils import (
     invalid_regex_patterns,
     match_any,
+    metric_key,
+    parse_perf_data,
     selection_allows,
     split_terms,
 )
@@ -44,11 +49,15 @@ def _password_selector():
     return selector({"text": {"type": "password"}})
 
 
-def _multi_select(options: list[str]):
+def _multi_select(options: list[str], labels: dict[str, str] | None = None):
+    labels = labels or {}
     return selector(
         {
             "select": {
-                "options": [{"value": option, "label": option} for option in options],
+                "options": [
+                    {"value": option, "label": labels.get(option, option)}
+                    for option in options
+                ],
                 "multiple": True,
                 "mode": "dropdown",
             }
@@ -129,6 +138,27 @@ def _service_schema(services: list[str], defaults: dict[str, Any]) -> vol.Schema
     )
 
 
+def _metric_schema(metrics: list[str], defaults: dict[str, Any]) -> vol.Schema:
+    selected = defaults.get(CONF_SELECTED_METRICS, [])
+    selected = [metric for metric in selected if metric in metrics]
+    labels = {metric: metric.replace("::", " — ", 1) for metric in metrics}
+    return vol.Schema(
+        {
+            vol.Optional(CONF_SELECTED_METRICS, default=selected): _multi_select(
+                metrics, labels
+            ),
+            vol.Optional(
+                CONF_METRIC_INCLUDE,
+                default=defaults.get(CONF_METRIC_INCLUDE, ""),
+            ): _text_selector(),
+            vol.Optional(
+                CONF_METRIC_EXCLUDE,
+                default=defaults.get(CONF_METRIC_EXCLUDE, ""),
+            ): _text_selector(),
+        }
+    )
+
+
 def _service_value(service: dict[str, Any], key: str):
     value = service.get(key)
     extensions = service.get("extensions")
@@ -139,8 +169,8 @@ def _service_value(service: dict[str, Any], key: str):
 
 async def _async_discover(
     config: dict[str, Any],
-) -> tuple[list[str], list[tuple[str, str]]]:
-    """Validate credentials and return Checkmk hosts and their services."""
+) -> tuple[list[str], list[tuple[str, str, tuple[str, ...]]]]:
+    """Validate credentials and return hosts, services, and metric names."""
     protocol = config.get(CONF_PROTOCOL, "https")
     host = config[CONF_HOST]
     port = config.get(CONF_PORT, 443 if protocol == "https" else 80)
@@ -168,7 +198,7 @@ async def _async_discover(
             headers={**headers, "Content-Type": "application/json"},
             json={
                 "sites": [site],
-                "columns": ["host_name", "description"],
+                "columns": ["host_name", "description", "perf_data"],
             },
             timeout=15,
         ) as response:
@@ -187,7 +217,17 @@ async def _async_discover(
     )
     services = sorted(
         {
-            (_service_value(item, "host_name"), _service_value(item, "description"))
+            (
+                _service_value(item, "host_name"),
+                _service_value(item, "description"),
+                tuple(
+                    metric["name"]
+                    for metric in parse_perf_data(
+                        _service_value(item, "perf_data") or "",
+                        _service_value(item, "description"),
+                    )
+                ),
+            )
             for item in service_payload.get("value", [])
             if _service_value(item, "host_name") and _service_value(item, "description")
         },
@@ -199,13 +239,14 @@ async def _async_discover(
 
 
 class _DiscoveryFlowMixin:
-    """Shared three-step discovery flow for setup and options."""
+    """Shared discovery assistant for setup and options."""
 
     _connection_data: dict[str, Any]
     _defaults: dict[str, Any]
     _hosts: list[str]
-    _host_services: list[tuple[str, str]]
+    _host_services: list[tuple[str, str, tuple[str, ...]]]
     _host_filters: dict[str, Any]
+    _service_filters: dict[str, Any]
 
     async def _async_connection_step(self, step_id: str, user_input=None):
         errors = {}
@@ -260,7 +301,11 @@ class _DiscoveryFlowMixin:
             if selection_allows(host, selected_hosts, include, exclude)
         }
         available_services = sorted(
-            {service for host, service in self._host_services if host in allowed_hosts},
+            {
+                service
+                for host, service, _metrics in self._host_services
+                if host in allowed_hosts
+            },
             key=str.casefold,
         )
         if user_input is not None:
@@ -271,22 +316,66 @@ class _DiscoveryFlowMixin:
             if invalid:
                 errors["base"] = "invalid_regex"
             else:
-                data = {
-                    **self._connection_data,
-                    **self._host_filters,
-                    **user_input,
-                }
-                data.pop(CONF_SERVICE_FILTER, None)
-                return self._async_finish(data)
+                self._service_filters = dict(user_input)
+                return await self.async_step_metrics()
         return self.async_show_form(
             step_id="services",
             data_schema=_service_schema(available_services, self._defaults),
             errors=errors,
         )
 
+    async def async_step_metrics(self, user_input=None):
+        errors = {}
+        selected_hosts = set(self._host_filters.get(CONF_SELECTED_HOSTS, []))
+        host_include = split_terms(self._host_filters.get(CONF_HOST_INCLUDE, ""))
+        host_exclude = split_terms(self._host_filters.get(CONF_HOST_EXCLUDE, ""))
+        selected_services = set(self._service_filters.get(CONF_SELECTED_SERVICES, []))
+        service_include = split_terms(
+            self._service_filters.get(CONF_SERVICE_INCLUDE, "")
+        )
+        service_exclude = split_terms(
+            self._service_filters.get(CONF_SERVICE_EXCLUDE, "")
+        )
+        available_metrics = sorted(
+            {
+                metric_key(service, metric)
+                for host, service, metrics in self._host_services
+                if selection_allows(host, selected_hosts, host_include, host_exclude)
+                and selection_allows(
+                    service,
+                    selected_services,
+                    service_include,
+                    service_exclude,
+                )
+                for metric in metrics
+            },
+            key=str.casefold,
+        )
+        if user_input is not None:
+            invalid = invalid_regex_patterns(
+                split_terms(user_input.get(CONF_METRIC_INCLUDE, ""))
+                + split_terms(user_input.get(CONF_METRIC_EXCLUDE, ""))
+            )
+            if invalid:
+                errors["base"] = "invalid_regex"
+            else:
+                data = {
+                    **self._connection_data,
+                    **self._host_filters,
+                    **self._service_filters,
+                    **user_input,
+                }
+                data.pop(CONF_SERVICE_FILTER, None)
+                return self._async_finish(data)
+        return self.async_show_form(
+            step_id="metrics",
+            data_schema=_metric_schema(available_metrics, self._defaults),
+            errors=errors,
+        )
+
 
 class CheckmkConfigFlow(_DiscoveryFlowMixin, config_entries.ConfigFlow, domain=DOMAIN):
-    """Configure Checkmk and discover selectable hosts and services."""
+    """Configure Checkmk with selectable hosts, services, and metrics."""
 
     VERSION = 1
 
@@ -307,7 +396,7 @@ class CheckmkConfigFlow(_DiscoveryFlowMixin, config_entries.ConfigFlow, domain=D
 
 
 class CheckmkOptionsFlowHandler(_DiscoveryFlowMixin, config_entries.OptionsFlow):
-    """Refresh discovery and edit host/service selections."""
+    """Refresh discovery and edit host, service, and metric selections."""
 
     def __init__(self, config_entry):
         super().__init__()
