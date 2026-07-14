@@ -1,4 +1,5 @@
 """Utility helpers for filtering and parsing."""
+
 import fnmatch
 import re
 import shlex
@@ -33,7 +34,41 @@ def split_terms(raw):
 
 
 def match_any(value, patterns):
-    return any(fnmatch.fnmatchcase(value, pattern) for pattern in patterns)
+    """Match shell wildcards or ``re:``-prefixed regular expressions."""
+    for pattern in patterns:
+        if pattern.startswith("re:"):
+            try:
+                if re.search(pattern[3:], value, re.IGNORECASE):
+                    return True
+            except re.error:
+                continue
+        elif fnmatch.fnmatch(value.lower(), pattern.lower()):
+            return True
+    return False
+
+
+def invalid_regex_patterns(patterns):
+    """Return invalid ``re:`` patterns without raising during setup."""
+    invalid = []
+    for pattern in patterns:
+        if not pattern.startswith("re:"):
+            continue
+        try:
+            re.compile(pattern[3:])
+        except re.error:
+            invalid.append(pattern)
+    return invalid
+
+
+def selection_allows(value, selected, include_patterns, exclude_patterns):
+    """Apply exact selections plus include/exclude wildcard or regex filters."""
+    if not value:
+        return False
+    if (selected or include_patterns) and not (
+        value in selected or match_any(value, include_patterns)
+    ):
+        return False
+    return not match_any(value, exclude_patterns)
 
 
 def parse_perf_data(raw, service_name=None):
@@ -83,7 +118,12 @@ def infer_metric_unit(service_name, metric_name):
     if metric.endswith("_percent") or metric in {"util", "disk_utilization"}:
         return "%"
     if "cpu utilization" in service and metric in {
-        "user", "system", "wait", "nice", "steal", "guest"
+        "user",
+        "system",
+        "wait",
+        "nice",
+        "steal",
+        "guest",
     }:
         return "%"
     if "temperature" in service or metric in {"temp", "temperature"}:

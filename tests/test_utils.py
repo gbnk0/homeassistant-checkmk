@@ -1,4 +1,5 @@
 """Tests for Checkmk performance data parsing."""
+
 import unittest
 import importlib.util
 from pathlib import Path
@@ -14,13 +15,14 @@ _UTILS = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(_UTILS)
 metric_device_class = _UTILS.metric_device_class
 parse_perf_data = _UTILS.parse_perf_data
+invalid_regex_patterns = _UTILS.invalid_regex_patterns
+match_any = _UTILS.match_any
+selection_allows = _UTILS.selection_allows
 
 
 class ParsePerfDataTest(unittest.TestCase):
     def test_parses_cpu_metrics_and_thresholds(self):
-        metrics = parse_perf_data(
-            "user=12.5%;80;90;0;100 system=3.25% wait=0%"
-        )
+        metrics = parse_perf_data("user=12.5%;80;90;0;100 system=3.25% wait=0%")
 
         self.assertEqual(metrics[0]["name"], "user")
         self.assertEqual(metrics[0]["value"], 12.5)
@@ -52,8 +54,7 @@ class ParsePerfDataTest(unittest.TestCase):
             "CPU utilization",
         )
         memory = parse_perf_data(
-            "mem_used=9414086656;;;0;24904916992 "
-            "mem_used_percent=37.800113;;;0;",
+            "mem_used=9414086656;;;0;24904916992 mem_used_percent=37.800113;;;0;",
             "Memory",
         )
         filesystem = parse_perf_data(
@@ -72,6 +73,22 @@ class ParsePerfDataTest(unittest.TestCase):
         self.assertEqual([metric["unit"] for metric in memory], ["B", "%"])
         self.assertEqual([metric["unit"] for metric in filesystem], ["MB", "%"])
         self.assertEqual([metric["unit"] for metric in disk], ["%", "B/s", "s"])
+
+    def test_matches_case_insensitive_wildcards_and_regex(self):
+        self.assertTrue(match_any("STR-QSV-1", ["*qsv*"]))
+        self.assertTrue(match_any("CPU utilization", [r"re:^cpu\s+util"]))
+        self.assertFalse(match_any("Memory", [r"re:^cpu"]))
+
+    def test_reports_invalid_regex(self):
+        self.assertEqual(
+            invalid_regex_patterns(["*qsv*", "re:[broken"]), ["re:[broken"]
+        )
+
+    def test_exact_selection_and_patterns_are_combined(self):
+        self.assertTrue(selection_allows("host-a", {"host-a"}, [], []))
+        self.assertTrue(selection_allows("host-b", {"host-a"}, ["host-*"], []))
+        self.assertFalse(selection_allows("db-a", {"host-a"}, ["host-*"], []))
+        self.assertFalse(selection_allows("host-a", {"host-a"}, [], ["re:^host-a$"]))
 
 
 if __name__ == "__main__":

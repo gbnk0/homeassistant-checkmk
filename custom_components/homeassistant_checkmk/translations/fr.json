@@ -1,58 +1,47 @@
 {
-  "title": "Capteur Checkmk",
+  "title": "Home Assistant Checkmk",
   "config": {
     "step": {
       "user": {
-        "description": "Configurez votre instance Checkmk.",
-        "data": {
-          "host": "Serveur Checkmk",
-          "site": "Nom du site",
-          "username": "Utilisateur API",
-          "password": "Secret API",
-          "protocol": "Protocole",
-          "port": "Port",
-          "verify_ssl": "Verifier le certificat SSL",
-          "host_include": "Hosts a inclure",
-          "host_exclude": "Hosts a exclure",
-          "service_include": "Services a inclure",
-          "service_exclude": "Services a exclure",
-          "service_filter": "Filtre services legacy (optionnel)"
-        },
-        "data_description": {
-          "host_include": "Un motif par ligne ou separe par espaces. Exemple: srv-* db-*",
-          "host_exclude": "Exclure les hosts correspondants.",
-          "service_include": "Inclure uniquement les services correspondants. Exemple: *cpu* *ram*",
-          "service_exclude": "Exclure les services correspondants.",
-          "service_filter": "Filtre d'inclusion legacy; laisser vide si vous utilisez include/exclude."
-        }
+        "title": "Connexion à Checkmk",
+        "description": "Renseignez les identifiants API, puis continuez pour actualiser les hôtes et services disponibles.",
+        "data": {"host": "Serveur Checkmk", "site": "Nom du site", "username": "Utilisateur API", "password": "Secret API", "protocol": "Protocole", "port": "Port", "verify_ssl": "Vérifier le certificat SSL"}
+      },
+      "hosts": {
+        "title": "Sélection des hôtes",
+        "description": "Sélectionnez précisément les hôtes ou complétez la sélection avec des motifs avancés.",
+        "data": {"selected_hosts": "Hôtes découverts", "host_include": "Motifs d'hôtes supplémentaires", "host_exclude": "Motifs d'hôtes exclus"},
+        "data_description": {"selected_hosts": "Hôtes chargés depuis Checkmk.", "host_include": "Jokers insensibles à la casse ou expressions re:. Exemple : *qsv* ou re:^srv-[0-9]+$", "host_exclude": "Les exclusions sont prioritaires sur les sélections et inclusions."}
+      },
+      "services": {
+        "title": "Sélection des services",
+        "description": "Les services sont limités aux hôtes sélectionnés ou correspondants.",
+        "data": {"selected_services": "Services découverts", "service_include": "Motifs de services supplémentaires", "service_exclude": "Motifs de services exclus"},
+        "data_description": {"selected_services": "Noms des services chargés depuis les hôtes sélectionnés.", "service_include": "Jokers insensibles à la casse ou expressions re:. Exemple : CPU* ou re:^(CPU|Memory)$", "service_exclude": "Les exclusions sont prioritaires sur les sélections et inclusions."}
       }
-    }
+    },
+    "error": {"cannot_connect": "Connexion à Checkmk impossible.", "invalid_auth": "Identifiants API Checkmk incorrects.", "invalid_regex": "Au moins une expression re: est invalide.", "invalid_response": "Checkmk a renvoyé une réponse vide ou invalide.", "unknown": "Erreur inattendue pendant le chargement des données Checkmk."}
   },
   "options": {
     "step": {
-      "options": {
-        "data": {
-          "host": "Serveur Checkmk",
-          "site": "Nom du site",
-          "username": "Utilisateur API",
-          "password": "Secret API",
-          "protocol": "Protocole",
-          "port": "Port",
-          "verify_ssl": "Verifier le certificat SSL",
-          "host_include": "Hosts a inclure",
-          "host_exclude": "Hosts a exclure",
-          "service_include": "Services a inclure",
-          "service_exclude": "Services a exclure",
-          "service_filter": "Filtre services legacy (optionnel)"
-        },
-        "data_description": {
-          "host_include": "Un motif par ligne ou separe par espaces. Exemple: srv-* db-*",
-          "host_exclude": "Exclure les hosts correspondants.",
-          "service_include": "Inclure uniquement les services correspondants. Exemple: *cpu* *ram*",
-          "service_exclude": "Exclure les services correspondants.",
-          "service_filter": "Filtre d'inclusion legacy; laisser vide si vous utilisez include/exclude."
-        }
+      "init": {
+        "title": "Actualiser la découverte Checkmk",
+        "description": "Vérifiez la connexion, puis continuez pour recharger les hôtes et services depuis Checkmk.",
+        "data": {"host": "Serveur Checkmk", "site": "Nom du site", "username": "Utilisateur API", "password": "Secret API", "protocol": "Protocole", "port": "Port", "verify_ssl": "Vérifier le certificat SSL"}
+      },
+      "hosts": {
+        "title": "Sélection des hôtes",
+        "description": "Sélectionnez précisément les hôtes ou complétez la sélection avec des motifs avancés.",
+        "data": {"selected_hosts": "Hôtes découverts", "host_include": "Motifs d'hôtes supplémentaires", "host_exclude": "Motifs d'hôtes exclus"},
+        "data_description": {"selected_hosts": "Hôtes chargés depuis Checkmk.", "host_include": "Jokers insensibles à la casse ou expressions re:. Exemple : *qsv* ou re:^srv-[0-9]+$", "host_exclude": "Les exclusions sont prioritaires sur les sélections et inclusions."}
+      },
+      "services": {
+        "title": "Sélection des services",
+        "description": "Les services sont limités aux hôtes sélectionnés ou correspondants.",
+        "data": {"selected_services": "Services découverts", "service_include": "Motifs de services supplémentaires", "service_exclude": "Motifs de services exclus"},
+        "data_description": {"selected_services": "Noms des services chargés depuis les hôtes sélectionnés.", "service_include": "Jokers insensibles à la casse ou expressions re:. Exemple : CPU* ou re:^(CPU|Memory)$", "service_exclude": "Les exclusions sont prioritaires sur les sélections et inclusions."}
       }
-    }
+    },
+    "error": {"cannot_connect": "Connexion à Checkmk impossible.", "invalid_auth": "Identifiants API Checkmk incorrects.", "invalid_regex": "Au moins une expression re: est invalide.", "invalid_response": "Checkmk a renvoyé une réponse vide ou invalide.", "unknown": "Erreur inattendue pendant le chargement des données Checkmk."}
   }
 }

@@ -1,4 +1,5 @@
 """Sensor entity for Checkmk with config entry support"""
+
 import logging
 from datetime import timedelta
 import aiohttp
@@ -12,9 +13,11 @@ from .const import (
     CONF_SERVICE_EXCLUDE,
     CONF_HOST_INCLUDE,
     CONF_HOST_EXCLUDE,
+    CONF_SELECTED_HOSTS,
+    CONF_SELECTED_SERVICES,
 )
 from .entities import CheckmkHostSensor, CheckmkMetricSensor, CheckmkServiceSensor
-from .utils import match_any, parse_perf_data, split_terms
+from .utils import match_any, parse_perf_data, selection_allows, split_terms
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -83,6 +86,7 @@ class CheckmkServiceCoordinator(DataUpdateCoordinator):
                 }
         return result
 
+
 async def async_setup_entry(hass, entry, async_add_entities):
     config = entry.options if entry.options else entry.data
     host = config[CONF_HOST]
@@ -97,15 +101,14 @@ async def async_setup_entry(hass, entry, async_add_entities):
     service_exclude = config.get(CONF_SERVICE_EXCLUDE, "")
     host_include = config.get(CONF_HOST_INCLUDE, "")
     host_exclude = config.get(CONF_HOST_EXCLUDE, "")
+    selected_hosts = set(config.get(CONF_SELECTED_HOSTS, []))
+    selected_services = set(config.get(CONF_SELECTED_SERVICES, []))
     service_include_terms = split_terms(service_include)
     service_exclude_terms = split_terms(service_exclude)
     host_include_terms = split_terms(host_include)
     host_exclude_terms = split_terms(host_exclude)
     url = f"{protocol}://{host}:{port}/{site}/check_mk/api/1.0/domain-types/host_config/collections/all"
-    headers = {
-        "Authorization": f"Bearer {user} {secret}",
-        "Accept": "application/json"
-    }
+    headers = {"Authorization": f"Bearer {user} {secret}", "Accept": "application/json"}
     # Option pour ignorer le certificat SSL (doit aussi prendre en compte entry.options)
     verify_ssl = config.get(CONF_VERIFY_SSL, False) if protocol == "https" else False
     # Pour aiohttp, ssl=False désactive la vérification, sinon ssl=True active la vérification
@@ -115,30 +118,28 @@ async def async_setup_entry(hass, entry, async_add_entities):
     device_registry = None
     try:
         from homeassistant.helpers import device_registry as dr
+
         device_registry = dr.async_get(hass)
         _LOGGER.debug(f"Device registry loaded: {device_registry}")
     except Exception as dr_err:
         _LOGGER.error(f"Device registry error: {dr_err}")
 
     def _host_allowed(host_name):
-        if not host_name:
-            return False
-        if host_include_terms and not match_any(host_name, host_include_terms):
-            return False
-        if host_exclude_terms and match_any(host_name, host_exclude_terms):
-            return False
-        return True
+        return selection_allows(
+            host_name, selected_hosts, host_include_terms, host_exclude_terms
+        )
 
     def _service_allowed(service_name):
         if not service_name:
             return False
         if filter_terms and not match_any(service_name, filter_terms):
             return False
-        if service_include_terms and not match_any(service_name, service_include_terms):
-            return False
-        if service_exclude_terms and match_any(service_name, service_exclude_terms):
-            return False
-        return True
+        return selection_allows(
+            service_name,
+            selected_services,
+            service_include_terms,
+            service_exclude_terms,
+        )
 
     def _add_host_entity(host_name):
         if not _host_allowed(host_name) or host_name in host_names:
@@ -156,7 +157,12 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 )
             except Exception as dr_err:
                 _LOGGER.error(f"Device registry error for host {host_name}: {dr_err}")
-        entities.append(CheckmkHostSensor(host, site, user, secret, host_name, verify_ssl, protocol, port))
+        entities.append(
+            CheckmkHostSensor(
+                host, site, user, secret, host_name, verify_ssl, protocol, port
+            )
+        )
+
     try:
         _LOGGER.debug(f"Connecting to Checkmk API: {url} with SSL {ssl_context}")
         connector = aiohttp.TCPConnector(ssl=ssl_context)
@@ -167,11 +173,21 @@ async def async_setup_entry(hass, entry, async_add_entities):
                     data = await resp.json()
                     _LOGGER.debug(f"Checkmk API response data: {data}")
                     hosts = data.get("value", [])
-                    if not filter_terms and not service_include_terms and not service_exclude_terms:
+                    if (
+                        not filter_terms
+                        and not service_include_terms
+                        and not service_exclude_terms
+                    ):
                         for host_obj in hosts:
-                            host_name = host_obj.get("id") or host_obj.get("name") or host_obj.get("title")
+                            host_name = (
+                                host_obj.get("id")
+                                or host_obj.get("name")
+                                or host_obj.get("title")
+                            )
                             if not host_name:
-                                _LOGGER.error(f"Host entry missing id/name/title: {host_obj}")
+                                _LOGGER.error(
+                                    f"Host entry missing id/name/title: {host_obj}"
+                                )
                                 continue
                             _add_host_entity(host_name)
                 else:
@@ -188,13 +204,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
         if not _service_allowed(service_name) or not _host_allowed(service_host):
             continue
         _add_host_entity(service_host)
-        entities.append(
-            CheckmkServiceSensor(coordinator, service_host, service_name)
-        )
+        entities.append(CheckmkServiceSensor(coordinator, service_host, service_name))
         entities.extend(
-            CheckmkMetricSensor(
-                coordinator, service_host, service_name, metric
-            )
+            CheckmkMetricSensor(coordinator, service_host, service_name, metric)
             for metric in service["metrics"].values()
         )
     if entities:

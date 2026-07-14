@@ -7,7 +7,8 @@ A Home Assistant custom integration for monitoring Checkmk hosts and services.
 - Host and service status sensors (OK/WARN/CRIT/UNKNOWN, UP/DOWN/UNREACH).
 - Numeric metric sensors for graphing CPU, RAM, disks, temperatures, network
   traffic and any other performance data exposed by Checkmk.
-- Include/exclude filters for hosts and services with wildcard patterns.
+- Discovery and multi-selection of hosts and services from the config flow.
+- Include/exclude filters with case-insensitive wildcards or regular expressions.
 - HTTPS or HTTP, custom port, optional SSL verification.
 - Config flow UI with editable options.
 
@@ -38,15 +39,26 @@ Required fields:
 - Username
 - Automation secret (API password)
 
+The setup then connects to Checkmk and loads the available hosts. Select the
+hosts you want, continue, then select the services found on those hosts.
+
 Optional fields:
 - Protocol (`http` or `https`)
 - Port
 - Verify SSL (disable for self-signed certs)
 - Host include/exclude patterns
 - Service include/exclude patterns
-- Legacy service filter (optional)
 
-Pattern format: space or comma separated, supports wildcards. Example: `*temp* *cpu*`.
+Patterns can complement the exact selections. They are separated by spaces,
+commas, or lines and are case-insensitive:
+
+- Wildcard: `*qsv*`, `CPU*`, or `Filesystem*`
+- Regular expression: `re:^STR-QSV-[1-3]$` or `re:^(CPU|Memory)$`
+
+Exclusions always take priority. To change an existing installation, open
+**Settings → Devices & services → Home Assistant Checkmk → Configure**. This
+reloads discovery and lets you change the connection, hosts, services, wildcards
+and regular expressions. Saving reloads the integration automatically.
 
 ## Entities
 

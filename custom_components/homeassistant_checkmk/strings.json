@@ -1,9 +1,10 @@
 {
-  "title": "Checkmk Sensor",
+  "title": "Home Assistant Checkmk",
   "config": {
     "step": {
       "user": {
-        "description": "Configure your Checkmk instance.",
+        "title": "Connect to Checkmk",
+        "description": "Enter the API credentials, then continue to refresh the available hosts and services.",
         "data": {
           "host": "Checkmk server",
           "site": "Site name",
@@ -11,26 +12,51 @@
           "password": "API secret",
           "protocol": "Protocol",
           "port": "Port",
-          "verify_ssl": "Verify SSL certificate",
-          "host_include": "Host include patterns",
-          "host_exclude": "Host exclude patterns",
-          "service_include": "Service include patterns",
-          "service_exclude": "Service exclude patterns",
-          "service_filter": "Legacy service filter (optional)"
+          "verify_ssl": "Verify SSL certificate"
+        }
+      },
+      "hosts": {
+        "title": "Select hosts",
+        "description": "Select exact hosts or complement the selection with advanced patterns.",
+        "data": {
+          "selected_hosts": "Discovered hosts",
+          "host_include": "Additional host patterns",
+          "host_exclude": "Excluded host patterns"
         },
         "data_description": {
-          "host_include": "One pattern per line or separated by spaces. Example: srv-* db-*",
-          "host_exclude": "Exclude matching hosts.",
-          "service_include": "Only include services matching these patterns. Example: *cpu* *ram*",
-          "service_exclude": "Exclude services matching these patterns.",
-          "service_filter": "Legacy include filter; keep empty if you use include/exclude."
+          "selected_hosts": "Hosts loaded from Checkmk.",
+          "host_include": "Case-insensitive wildcards or re: expressions. Example: *qsv* or re:^srv-[0-9]+$",
+          "host_exclude": "Exclusions take priority over selections and includes."
+        }
+      },
+      "services": {
+        "title": "Select services",
+        "description": "Services are limited to the selected or matching hosts.",
+        "data": {
+          "selected_services": "Discovered services",
+          "service_include": "Additional service patterns",
+          "service_exclude": "Excluded service patterns"
+        },
+        "data_description": {
+          "selected_services": "Service names loaded from the selected hosts.",
+          "service_include": "Case-insensitive wildcards or re: expressions. Example: CPU* or re:^(CPU|Memory)$",
+          "service_exclude": "Exclusions take priority over selections and includes."
         }
       }
+    },
+    "error": {
+      "cannot_connect": "Unable to connect to Checkmk.",
+      "invalid_auth": "Invalid Checkmk API credentials.",
+      "invalid_regex": "At least one re: expression is invalid.",
+      "invalid_response": "Checkmk returned an invalid or empty response.",
+      "unknown": "Unexpected error while loading Checkmk data."
     }
   },
   "options": {
     "step": {
-      "options": {
+      "init": {
+        "title": "Refresh Checkmk discovery",
+        "description": "Check the connection settings, then continue to reload hosts and services from Checkmk.",
         "data": {
           "host": "Checkmk server",
           "site": "Site name",
@@ -38,21 +64,44 @@
           "password": "API secret",
           "protocol": "Protocol",
           "port": "Port",
-          "verify_ssl": "Verify SSL certificate",
-          "host_include": "Host include patterns",
-          "host_exclude": "Host exclude patterns",
-          "service_include": "Service include patterns",
-          "service_exclude": "Service exclude patterns",
-          "service_filter": "Legacy service filter (optional)"
+          "verify_ssl": "Verify SSL certificate"
+        }
+      },
+      "hosts": {
+        "title": "Select hosts",
+        "description": "Select exact hosts or complement the selection with advanced patterns.",
+        "data": {
+          "selected_hosts": "Discovered hosts",
+          "host_include": "Additional host patterns",
+          "host_exclude": "Excluded host patterns"
         },
         "data_description": {
-          "host_include": "One pattern per line or separated by spaces. Example: srv-* db-*",
-          "host_exclude": "Exclude matching hosts.",
-          "service_include": "Only include services matching these patterns. Example: *cpu* *ram*",
-          "service_exclude": "Exclude services matching these patterns.",
-          "service_filter": "Legacy include filter; keep empty if you use include/exclude."
+          "selected_hosts": "Hosts loaded from Checkmk.",
+          "host_include": "Case-insensitive wildcards or re: expressions. Example: *qsv* or re:^srv-[0-9]+$",
+          "host_exclude": "Exclusions take priority over selections and includes."
+        }
+      },
+      "services": {
+        "title": "Select services",
+        "description": "Services are limited to the selected or matching hosts.",
+        "data": {
+          "selected_services": "Discovered services",
+          "service_include": "Additional service patterns",
+          "service_exclude": "Excluded service patterns"
+        },
+        "data_description": {
+          "selected_services": "Service names loaded from the selected hosts.",
+          "service_include": "Case-insensitive wildcards or re: expressions. Example: CPU* or re:^(CPU|Memory)$",
+          "service_exclude": "Exclusions take priority over selections and includes."
         }
       }
+    },
+    "error": {
+      "cannot_connect": "Unable to connect to Checkmk.",
+      "invalid_auth": "Invalid Checkmk API credentials.",
+      "invalid_regex": "At least one re: expression is invalid.",
+      "invalid_response": "Checkmk returned an invalid or empty response.",
+      "unknown": "Unexpected error while loading Checkmk data."
     }
   }
 }
