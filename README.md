@@ -1,4 +1,4 @@
-# Home Assistant Checkmk Integration
+# Checkmk
 
 A Home Assistant custom integration for monitoring Checkmk hosts and services.
 
@@ -31,7 +31,7 @@ Click the button below to add this repository in HACS:
 
 ## Configuration (UI)
 
-Settings → Devices & Services → Add Integration → **Home Assistant Checkmk**.
+Settings → Devices & Services → Add Integration → **Checkmk**.
 
 Required fields:
 - Host (Checkmk server)
@@ -61,7 +61,7 @@ commas, or lines and are case-insensitive:
 - Regular expression: `re:^STR-QSV-[1-3]$` or `re:^(CPU|Memory)$`
 
 Exclusions always take priority. To change an existing installation, open
-**Settings → Devices & services → Home Assistant Checkmk → Configure**. This
+**Settings → Devices & services → Checkmk → Configure**. This
 reloads discovery and lets you change the connection, hosts, services, metrics,
 wildcards and regular expressions. Saving reloads the integration automatically.
 
