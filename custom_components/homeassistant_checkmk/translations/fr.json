@@ -11,7 +11,7 @@
         "title": "Sélection des hôtes",
         "description": "Sélectionnez précisément les hôtes ou complétez la sélection avec des motifs avancés.",
         "data": {"selected_hosts": "Hôtes découverts", "host_include": "Motifs d'hôtes supplémentaires", "host_exclude": "Motifs d'hôtes exclus"},
-        "data_description": {"selected_hosts": "Hôtes chargés depuis Checkmk.", "host_include": "Jokers insensibles à la casse ou expressions re:. Exemple : *qsv* ou re:^srv-[0-9]+$", "host_exclude": "Les exclusions sont prioritaires sur les sélections et inclusions."}
+        "data_description": {"selected_hosts": "Hôtes chargés depuis Checkmk.", "host_include": "Jokers insensibles à la casse ou expressions re:. Exemple : my-server* ou re:^my-server-[0-9]+$", "host_exclude": "Les exclusions sont prioritaires sur les sélections et inclusions."}
       },
       "services": {
         "title": "Sélection des services",
@@ -39,7 +39,7 @@
         "title": "Sélection des hôtes",
         "description": "Sélectionnez précisément les hôtes ou complétez la sélection avec des motifs avancés.",
         "data": {"selected_hosts": "Hôtes découverts", "host_include": "Motifs d'hôtes supplémentaires", "host_exclude": "Motifs d'hôtes exclus"},
-        "data_description": {"selected_hosts": "Hôtes chargés depuis Checkmk.", "host_include": "Jokers insensibles à la casse ou expressions re:. Exemple : *qsv* ou re:^srv-[0-9]+$", "host_exclude": "Les exclusions sont prioritaires sur les sélections et inclusions."}
+        "data_description": {"selected_hosts": "Hôtes chargés depuis Checkmk.", "host_include": "Jokers insensibles à la casse ou expressions re:. Exemple : my-server* ou re:^my-server-[0-9]+$", "host_exclude": "Les exclusions sont prioritaires sur les sélections et inclusions."}
       },
       "services": {
         "title": "Sélection des services",

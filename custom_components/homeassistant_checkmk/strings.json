@@ -25,7 +25,7 @@
         },
         "data_description": {
           "selected_hosts": "Hosts loaded from Checkmk.",
-          "host_include": "Case-insensitive wildcards or re: expressions. Example: *qsv* or re:^srv-[0-9]+$",
+          "host_include": "Case-insensitive wildcards or re: expressions. Example: my-server* or re:^my-server-[0-9]+$",
           "host_exclude": "Exclusions take priority over selections and includes."
         }
       },
@@ -91,7 +91,7 @@
         },
         "data_description": {
           "selected_hosts": "Hosts loaded from Checkmk.",
-          "host_include": "Case-insensitive wildcards or re: expressions. Example: *qsv* or re:^srv-[0-9]+$",
+          "host_include": "Case-insensitive wildcards or re: expressions. Example: my-server* or re:^my-server-[0-9]+$",
           "host_exclude": "Exclusions take priority over selections and includes."
         }
       },

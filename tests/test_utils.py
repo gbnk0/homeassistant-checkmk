@@ -77,13 +77,13 @@ class ParsePerfDataTest(unittest.TestCase):
         self.assertEqual([metric["unit"] for metric in disk], ["%", "B/s", "s"])
 
     def test_matches_case_insensitive_wildcards_and_regex(self):
-        self.assertTrue(match_any("STR-QSV-1", ["*qsv*"]))
+        self.assertTrue(match_any("my-server-1", ["my-server*"]))
         self.assertTrue(match_any("CPU utilization", [r"re:^cpu\s+util"]))
         self.assertFalse(match_any("Memory", [r"re:^cpu"]))
 
     def test_reports_invalid_regex(self):
         self.assertEqual(
-            invalid_regex_patterns(["*qsv*", "re:[broken"]), ["re:[broken"]
+            invalid_regex_patterns(["my-server*", "re:[broken"]), ["re:[broken"]
         )
 
     def test_exact_selection_and_patterns_are_combined(self):

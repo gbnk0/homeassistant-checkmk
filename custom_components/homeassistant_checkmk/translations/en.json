@@ -11,7 +11,7 @@
         "title": "Select hosts",
         "description": "Select exact hosts or complement the selection with advanced patterns.",
         "data": {"selected_hosts": "Discovered hosts", "host_include": "Additional host patterns", "host_exclude": "Excluded host patterns"},
-        "data_description": {"selected_hosts": "Hosts loaded from Checkmk.", "host_include": "Case-insensitive wildcards or re: expressions. Example: *qsv* or re:^srv-[0-9]+$", "host_exclude": "Exclusions take priority over selections and includes."}
+        "data_description": {"selected_hosts": "Hosts loaded from Checkmk.", "host_include": "Case-insensitive wildcards or re: expressions. Example: my-server* or re:^my-server-[0-9]+$", "host_exclude": "Exclusions take priority over selections and includes."}
       },
       "services": {
         "title": "Select services",
@@ -39,7 +39,7 @@
         "title": "Select hosts",
         "description": "Select exact hosts or complement the selection with advanced patterns.",
         "data": {"selected_hosts": "Discovered hosts", "host_include": "Additional host patterns", "host_exclude": "Excluded host patterns"},
-        "data_description": {"selected_hosts": "Hosts loaded from Checkmk.", "host_include": "Case-insensitive wildcards or re: expressions. Example: *qsv* or re:^srv-[0-9]+$", "host_exclude": "Exclusions take priority over selections and includes."}
+        "data_description": {"selected_hosts": "Hosts loaded from Checkmk.", "host_include": "Case-insensitive wildcards or re: expressions. Example: my-server* or re:^my-server-[0-9]+$", "host_exclude": "Exclusions take priority over selections and includes."}
       },
       "services": {
         "title": "Select services",

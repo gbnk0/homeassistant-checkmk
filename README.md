@@ -58,8 +58,8 @@ Optional fields:
 Patterns can complement the exact selections. They are separated by spaces,
 commas, or lines and are case-insensitive:
 
-- Wildcard: `*qsv*`, `CPU*`, or `Filesystem*`
-- Regular expression: `re:^STR-QSV-[1-3]$` or `re:^(CPU|Memory)$`
+- Wildcard: `my-server*`, `CPU*`, or `Filesystem*`
+- Regular expression: `re:^my-server-[0-9]+$` or `re:^(CPU|Memory)$`
 
 Exclusions always take priority. To change an existing installation, open
 **Settings → Devices & services → Checkmk → Configure**. This
