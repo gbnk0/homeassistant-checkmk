@@ -2,6 +2,9 @@
 
 A Home Assistant custom integration for monitoring Checkmk hosts and services.
 
+[![HACS Default](https://img.shields.io/badge/HACS-Default-orange.svg?style=flat-square)](https://www.hacs.xyz/)
+[![Open your Home Assistant instance and add this integration repository to HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?category=integration&owner=gbnk0&repository=homeassistant-checkmk)
+
 ## Features
 
 - Host and service status sensors (OK/WARN/CRIT/UNKNOWN, UP/DOWN/UNREACH).
@@ -14,15 +17,13 @@ A Home Assistant custom integration for monitoring Checkmk hosts and services.
 
 ## Installation
 
-### HACS (custom repository)
+### HACS (recommended)
 
-Click the button below to add this repository in HACS:
+Checkmk is available in the default HACS integration store. No custom repository is required.
 
-[![Open your Home Assistant instance and add this integration repository to HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?category=integration&owner=gbnk0&repository=homeassistant-checkmk)
-
-1. HACS → Integrations → three dots → Custom repositories.
-2. Add this repository URL, category: Integration.
-3. Install, then restart Home Assistant.
+1. Open HACS → Integrations.
+2. Search for **Checkmk**, then select **Download**.
+3. Restart Home Assistant.
 
 ### Manual
 
@@ -94,7 +95,7 @@ logger:
 
 ## HACS
 
-This repository is HACS-compatible as a custom integration.
+This integration is available from the default HACS repository.
 
 ## Releases and versions
 

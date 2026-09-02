@@ -1,3 +1,3 @@
 # info.md
 
-Custom integration for Home Assistant to monitor Checkmk status. Compatible with HACS.
+Home Assistant integration for Checkmk status and performance metrics. Available in the default HACS repository.
