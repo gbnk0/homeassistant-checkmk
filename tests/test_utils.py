@@ -81,6 +81,14 @@ class ParsePerfDataTest(unittest.TestCase):
         self.assertTrue(match_any("CPU utilization", [r"re:^cpu\s+util"]))
         self.assertFalse(match_any("Memory", [r"re:^cpu"]))
 
+    def test_power_w_without_unit_is_a_power_measurement(self):
+        for service in ("CPU Package Power", "Platform Power", "Electrical Power"):
+            with self.subTest(service=service):
+                metric = parse_perf_data("power_w=25.56;;;;", service)[0]
+                self.assertEqual(metric["value"], 25.56)
+                self.assertEqual(metric["unit"], "W")
+                self.assertEqual(metric_device_class(metric["unit"]), "power")
+
     def test_reports_invalid_regex(self):
         self.assertEqual(
             invalid_regex_patterns(["my-server*", "re:[broken"]), ["re:[broken"]

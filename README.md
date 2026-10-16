@@ -79,6 +79,10 @@ mapped to the corresponding Home Assistant device class. Checkmk warning,
 critical, minimum and maximum values are exposed as entity attributes when
 available.
 
+Metrics named `power_w` are recognized as power measurements in watts even when
+Checkmk omits the unit from its performance data. Select their services and
+metrics in the configuration assistant to import them.
+
 ## Troubleshooting
 
 - 401/403: verify username and automation secret in Checkmk.

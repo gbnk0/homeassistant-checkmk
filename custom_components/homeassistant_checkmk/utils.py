@@ -135,6 +135,8 @@ def infer_metric_unit(service_name, metric_name):
     service = (service_name or "").lower()
     metric = metric_name.lower()
 
+    if metric == "power_w":
+        return "W"
     if metric.endswith("_percent") or metric in {"util", "disk_utilization"}:
         return "%"
     if "cpu utilization" in service and metric in {
