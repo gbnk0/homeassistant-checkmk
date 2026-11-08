@@ -167,6 +167,7 @@ class CheckmkHostSensor(Entity):
         url = f"{self._protocol}://{self._host}:{self._port}/{self._site}/check_mk/api/1.0/domain-types/host/collections/all"
         headers = {"Authorization": f"Bearer {self._user} {self._secret}", "Content-Type": "application/json"}
         body = {
+            "columns": ["name", "state"],
             "query": {
                 "op": "=",
                 "left": "name",
@@ -182,7 +183,7 @@ class CheckmkHostSensor(Entity):
                         _LOGGER.debug(f"Checkmk host status API response: {data}")
                         hosts = data.get("value", [])
                         if hosts:
-                            status = hosts[0].get("state")
+                            status = hosts[0].get("extensions", {}).get("state", hosts[0].get("state"))
                             self._state = _map_state(status, HOST_STATE_MAP)
                             self._available = True
                         else:
