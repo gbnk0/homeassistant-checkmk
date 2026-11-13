@@ -26,7 +26,7 @@
         "data_description": {"selected_metrics": "Les métriques sont regroupées sous la forme Service — métrique.", "metric_include": "Correspond au nom ou à la clé Service::métrique. Exemple : *percent ou Memory::mem_*", "metric_exclude": "Les exclusions sont prioritaires. Les jokers et expressions re: sont acceptés."}
       }
     },
-    "error": {"cannot_connect": "Connexion à Checkmk impossible.", "invalid_auth": "Identifiants API Checkmk incorrects.", "invalid_regex": "Au moins une expression re: est invalide.", "invalid_response": "Checkmk a renvoyé une réponse vide ou invalide.", "unknown": "Erreur inattendue pendant le chargement des données Checkmk."}
+    "error": {"cannot_connect": "Connexion à Checkmk impossible.", "invalid_auth": "Accès API Checkmk refusé. Vérifiez les identifiants et les droits de l’utilisateur.", "invalid_regex": "Au moins une expression re: est invalide.", "no_hosts": "Aucun hôte visible. Vérifiez le site, les hôtes supervisés et les droits de visibilité de l’utilisateur API.", "invalid_response": "Checkmk a renvoyé une réponse API invalide. Consultez les journaux pour connaître le point de terminaison et la cause.", "unknown": "Erreur inattendue pendant le chargement des données Checkmk."}
   },
   "options": {
     "step": {
@@ -54,6 +54,6 @@
         "data_description": {"selected_metrics": "Les métriques sont regroupées sous la forme Service — métrique.", "metric_include": "Correspond au nom ou à la clé Service::métrique. Exemple : *percent ou Memory::mem_*", "metric_exclude": "Les exclusions sont prioritaires. Les jokers et expressions re: sont acceptés."}
       }
     },
-    "error": {"cannot_connect": "Connexion à Checkmk impossible.", "invalid_auth": "Identifiants API Checkmk incorrects.", "invalid_regex": "Au moins une expression re: est invalide.", "invalid_response": "Checkmk a renvoyé une réponse vide ou invalide.", "unknown": "Erreur inattendue pendant le chargement des données Checkmk."}
+    "error": {"cannot_connect": "Connexion à Checkmk impossible.", "invalid_auth": "Accès API Checkmk refusé. Vérifiez les identifiants et les droits de l’utilisateur.", "invalid_regex": "Au moins une expression re: est invalide.", "no_hosts": "Aucun hôte visible. Vérifiez le site, les hôtes supervisés et les droits de visibilité de l’utilisateur API.", "invalid_response": "Checkmk a renvoyé une réponse API invalide. Consultez les journaux pour connaître le point de terminaison et la cause.", "unknown": "Erreur inattendue pendant le chargement des données Checkmk."}
   }
 }

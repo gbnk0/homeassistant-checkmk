@@ -167,6 +167,52 @@ def _service_value(service: dict[str, Any], key: str):
     return value
 
 
+class NoHostsError(ValueError):
+    """No hosts are visible to the automation user."""
+
+
+def _collection(payload: Any, endpoint: str) -> list[dict[str, Any]]:
+    """Validate the collection envelope without logging server data."""
+    if (
+        not isinstance(payload, dict)
+        or not isinstance(payload.get("value"), list)
+        or any(not isinstance(item, dict) for item in payload["value"])
+    ):
+        raise ValueError(f"{endpoint}: expected an object with a value array of objects")
+    return payload["value"]
+
+
+def _host_names(payload: Any, endpoint: str) -> list[str]:
+    names = set()
+    for item in _collection(payload, endpoint):
+        # Keep the existing identifier precedence; monitoring also exposes name
+        # inside extensions. Titles remain a compatibility fallback.
+        extensions = item.get("extensions")
+        name = item.get("id") or item.get("name")
+        if not name and isinstance(extensions, dict):
+            name = extensions.get("name")
+        name = name or item.get("title")
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError(f"{endpoint}: host entry has no valid host identifier")
+        names.add(name)
+    return sorted(names, key=str.casefold)
+
+
+async def _response_payload(response, endpoint: str):
+    """Report safe endpoint diagnostics, never response bodies or credentials."""
+    _LOGGER.debug("Checkmk %s returned HTTP %s", endpoint, response.status)
+    if response.status in {401, 403}:
+        _LOGGER.warning("Checkmk %s denied access (HTTP %s)", endpoint, response.status)
+        raise PermissionError
+    if response.status >= 400:
+        _LOGGER.warning("Checkmk %s failed (HTTP %s)", endpoint, response.status)
+    response.raise_for_status()
+    try:
+        return await response.json()
+    except (ValueError, aiohttp.ContentTypeError) as err:
+        raise ValueError(f"{endpoint}: expected a JSON response") from err
+
+
 async def _async_discover(
     config: dict[str, Any],
 ) -> tuple[list[str], list[tuple[str, str, tuple[str, ...]]]]:
@@ -183,15 +229,30 @@ async def _async_discover(
     ssl_context = config.get(CONF_VERIFY_SSL, False) if protocol == "https" else False
     connector = aiohttp.TCPConnector(ssl=ssl_context)
     async with aiohttp.ClientSession(connector=connector) as session:
+        config_endpoint = "/domain-types/host_config/collections/all"
+        monitoring_endpoint = "/domain-types/host/collections/all"
         async with session.get(
-            f"{base_url}/domain-types/host_config/collections/all",
-            headers=headers,
-            timeout=15,
+            f"{base_url}{config_endpoint}", headers=headers, timeout=15
         ) as response:
-            if response.status in {401, 403}:
-                raise PermissionError
-            response.raise_for_status()
-            host_payload = await response.json()
+            # Setup visibility is not required for a monitoring-only account.
+            if response.status == 403:
+                _LOGGER.debug("Checkmk host_config denied access; trying monitoring hosts")
+                hosts = []
+            else:
+                hosts = _host_names(
+                    await _response_payload(response, config_endpoint), config_endpoint
+                )
+        if not hosts:
+            _LOGGER.debug("No configured hosts visible; trying Checkmk monitoring hosts")
+            async with session.get(
+                f"{base_url}{monitoring_endpoint}", headers=headers, timeout=15
+            ) as response:
+                hosts = _host_names(
+                    await _response_payload(response, monitoring_endpoint),
+                    monitoring_endpoint,
+                )
+        if not hosts:
+            raise NoHostsError
 
         async with session.post(
             f"{base_url}/domain-types/service/collections/all",
@@ -202,19 +263,16 @@ async def _async_discover(
             },
             timeout=15,
         ) as response:
-            if response.status in {401, 403}:
-                raise PermissionError
-            response.raise_for_status()
-            service_payload = await response.json()
+            service_payload = await _response_payload(
+                response, "/domain-types/service/collections/all"
+            )
 
-    hosts = sorted(
-        {
-            item.get("id") or item.get("name") or item.get("title")
-            for item in host_payload.get("value", [])
-            if item.get("id") or item.get("name") or item.get("title")
-        },
-        key=str.casefold,
-    )
+    service_items = _collection(service_payload, "/domain-types/service/collections/all")
+    for item in service_items:
+        for key in ("host_name", "description", "perf_data"):
+            value = _service_value(item, key)
+            if value is not None and not isinstance(value, str):
+                raise ValueError(f"/domain-types/service/collections/all: invalid {key} field")
     services = sorted(
         {
             (
@@ -228,13 +286,12 @@ async def _async_discover(
                     )
                 ),
             )
-            for item in service_payload.get("value", [])
+            for item in service_items
             if _service_value(item, "host_name") and _service_value(item, "description")
         },
         key=lambda item: (item[0].casefold(), item[1].casefold()),
     )
-    if not hosts:
-        raise ValueError("No hosts returned by Checkmk")
+    _LOGGER.debug("Checkmk discovery found %s hosts and %s services", len(hosts), len(services))
     return hosts, services
 
 
@@ -254,11 +311,19 @@ class _DiscoveryFlowMixin:
             self._defaults = {**self._defaults, **user_input}
             try:
                 self._hosts, self._host_services = await _async_discover(user_input)
+            except NoHostsError:
+                _LOGGER.warning(
+                    "Checkmk returned no visible hosts from configured and monitoring "
+                    "host collections; check the site, monitoring status and user visibility"
+                )
+                errors["base"] = "no_hosts"
             except PermissionError:
                 errors["base"] = "invalid_auth"
-            except (aiohttp.ClientError, TimeoutError):
+            except (aiohttp.ClientError, TimeoutError) as err:
+                _LOGGER.warning("Checkmk discovery request failed (%s)", type(err).__name__)
                 errors["base"] = "cannot_connect"
-            except (ValueError, TypeError):
+            except (ValueError, TypeError) as err:
+                _LOGGER.warning("Invalid Checkmk discovery response: %s", err)
                 errors["base"] = "invalid_response"
             except Exception:  # pragma: no cover - defensive HA boundary
                 _LOGGER.exception("Unexpected Checkmk discovery error")
