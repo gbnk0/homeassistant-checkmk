@@ -107,3 +107,37 @@ Stable versions are published as GitHub Releases from semantic Git tags named
 `vMAJOR.MINOR.PATCH` (for example, `v0.2.0`). The integration manifest uses the
 same version without the leading `v`. HACS installs and upgrades from the latest
 GitHub Release rather than directly from the default branch.
+
+
+## Host discovery and read-only accounts
+
+Setup and options first use the configured-host collection to preserve existing
+host selections. If that collection is empty or returns HTTP 403, discovery
+tries the monitoring host collection (`GET /domain-types/host/collections/all`).
+This allows automation users with monitoring visibility, including Guest users,
+to discover hosts without granting access to Setup. Neither request modifies
+Checkmk. The existing service collection POST is also a read-only query.
+
+The monitoring response uses the host name as `id`; names under `extensions`
+are also accepted. Existing identifiers, filters and stored configuration are
+unchanged. No visible hosts produces a specific error with visibility guidance.
+Malformed collections produce an invalid-response error and a log entry naming
+the endpoint and reason. Logs omit API credentials and response bodies.
+
+Checkmk has deprecated the monitoring host and service endpoints; migration to
+replacement APIs is outside this fix. Configured-host discovery continues to
+work without calling the monitoring host endpoint when it returns hosts.
+
+## Running tests
+
+```sh
+python -m pip install -r requirements-test.txt
+python -m unittest discover -s tests -v
+python -m compileall -q custom_components tests
+```
+
+Discovery tests mock HTTP requests and use minimal Home Assistant form stubs.
+They cover the empty configured-host / 24 monitoring-host regression, existing
+host discovery, service and metric parsing, permissions, malformed responses,
+empty results, safe logging, and setup/options error mapping. They do not replace
+a live Checkmk and Home Assistant integration test.

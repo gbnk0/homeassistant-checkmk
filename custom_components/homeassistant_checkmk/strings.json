@@ -60,9 +60,10 @@
     },
     "error": {
       "cannot_connect": "Unable to connect to Checkmk.",
-      "invalid_auth": "Invalid Checkmk API credentials.",
+      "invalid_auth": "Checkmk denied API access. Check the credentials and user permissions.",
       "invalid_regex": "At least one re: expression is invalid.",
-      "invalid_response": "Checkmk returned an invalid or empty response.",
+      "no_hosts": "No hosts are visible. Check the site name, monitored hosts, and API user host visibility permissions.",
+      "invalid_response": "Checkmk returned an invalid API response. Check the logs for the endpoint and reason.",
       "unknown": "Unexpected error while loading Checkmk data."
     }
   },
@@ -126,9 +127,10 @@
     },
     "error": {
       "cannot_connect": "Unable to connect to Checkmk.",
-      "invalid_auth": "Invalid Checkmk API credentials.",
+      "invalid_auth": "Checkmk denied API access. Check the credentials and user permissions.",
       "invalid_regex": "At least one re: expression is invalid.",
-      "invalid_response": "Checkmk returned an invalid or empty response.",
+      "no_hosts": "No hosts are visible. Check the site name, monitored hosts, and API user host visibility permissions.",
+      "invalid_response": "Checkmk returned an invalid API response. Check the logs for the endpoint and reason.",
       "unknown": "Unexpected error while loading Checkmk data."
     }
   }
